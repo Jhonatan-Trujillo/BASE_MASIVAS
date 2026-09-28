@@ -1,0 +1,143 @@
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #0b1120;
+    color: #e5e7eb;
+    margin: 0;
+    padding: 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+header h1 {
+    margin-bottom: 0.25rem;
+    background: linear-gradient(90deg, #38bdf8, #a78bfa);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+header p {
+    color: #94a3b8;
+    margin-top: 0;
+}
+
+main {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#mapa-contenedor {
+    position: relative;
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 0.5rem;
+    width: 716px;
+    height: 516px;
+}
+
+#mapa-fondo, #mapa {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    background: radial-gradient(circle, #0f172a 0%, #020617 100%);
+    border-radius: 6px;
+}
+
+#mapa {
+    background: transparent; /* el fondo ya lo dibuja #mapa-fondo debajo */
+}
+
+.columna-derecha {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 320px;
+}
+
+#panel-satelites, #panel-alertas {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+#panel-satelites h2, #panel-alertas h2 {
+    margin-top: 0;
+    font-size: 1rem;
+}
+
+.nota-satelites {
+    font-size: 0.75rem;
+    color: #64748b;
+    margin: 0.25rem 0 0.75rem;
+}
+
+.satelite-card {
+    background: #1e293b;
+    border-left: 3px solid #facc15;
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.satelite-card strong { color: #facc15; }
+
+#panel-alertas {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+#lista-alertas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+#lista-alertas li {
+    padding: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.alerta-bateria   { background: #7c2d12; }
+.alerta-altitud   { background: #78350f; }
+.alerta-velocidad { background: #713f12; }
+.alerta-orbita    { background: #581c87; }
+.alerta-colision  { background: #7f1d1d; font-weight: bold; }
+
+#leyenda {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+}
+
+.leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.icono-leyenda {
+    width: 12px;
+    height: 12px;
+    display: inline-block;
+}
+
+.icono-leyenda.dron { background: #38bdf8; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+.icono-leyenda.estacion { background: #a78bfa; border-radius: 50%; }
+.icono-leyenda.halo { border: 2px solid #ef4444; background: transparent; border-radius: 50%; }

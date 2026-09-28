@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulación de Tráfico Aeroespacial</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Gestión de Tráfico y Operaciones Aeroespaciales</h1>
+        <p>Simulación en tiempo real (Spark Structured Streaming)</p>
+    </header>
+
+    <main>
+        <section id="mapa-contenedor">
+            <canvas id="mapa-fondo" width="700" height="500"></canvas>
+            <canvas id="mapa" width="700" height="500"></canvas>
+        </section>
+
+        <div class="columna-derecha">
+            <section id="panel-satelites">
+                <h2>🛰️ Satélites en órbita (LEO)</h2>
+                <p class="nota-satelites">Se muestran aquí porque su velocidad orbital (~27.000 km/h) los sacaría del mapa local en menos de un segundo.</p>
+                <div id="lista-satelites"></div>
+            </section>
+
+            <aside id="panel-alertas">
+                <h2>🚨 Alertas</h2>
+                <ul id="lista-alertas"></ul>
+            </aside>
+        </div>
+    </main>
+
+    <footer id="leyenda">
+        <span class="leyenda-item"><span class="icono-leyenda dron"></span> Dron</span>
+        <span class="leyenda-item"><span class="icono-leyenda estacion"></span> Estación ADS-B (tierra)</span>
+        <span class="leyenda-item"><span class="icono-leyenda halo"></span> Alerta activa</span>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
