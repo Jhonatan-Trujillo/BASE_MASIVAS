@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulación de Tráfico Aeroespacial</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header>
         <h1>Gestión de Tráfico y Operaciones Aeroespaciales</h1>
-        <p>Simulación en tiempo real (Spark Structured Streaming)</p>
+        <p>Simulación en tiempo real (Kafka + Spark Structured Streaming)</p>
+        <div id="estado-conexion" class="estado-espera">● Conectando con el servidor...</div>
+        <a class="enlace-nav" href="/kafka">📡 Ver monitor de Kafka →</a>
     </header>
 
     <main>
@@ -17,18 +20,16 @@
             <canvas id="mapa" width="700" height="500"></canvas>
         </section>
 
-        <div class="columna-derecha">
-            <section id="panel-satelites">
-                <h2>🛰️ Satélites en órbita (LEO)</h2>
-                <p class="nota-satelites">Se muestran aquí porque su velocidad orbital (~27.000 km/h) los sacaría del mapa local en menos de un segundo.</p>
-                <div id="lista-satelites"></div>
-            </section>
+        <section id="panel-satelites">
+            <h2>🛰️ Satélites en órbita (LEO)</h2>
+            <p class="nota-satelites">Se muestran aquí porque su velocidad orbital (~27.000 km/h) los sacaría del mapa local en menos de un segundo.</p>
+            <div id="lista-satelites"></div>
+        </section>
 
-            <aside id="panel-alertas">
-                <h2>🚨 Alertas</h2>
-                <ul id="lista-alertas"></ul>
-            </aside>
-        </div>
+        <aside id="panel-alertas">
+            <h2>🚨 Alertas</h2>
+            <ul id="lista-alertas"></ul>
+        </aside>
     </main>
 
     <footer id="leyenda">

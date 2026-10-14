@@ -1,0 +1,236 @@
+* { box-sizing: border-box; }
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #0b1120;
+    color: #e5e7eb;
+    margin: 0;
+    padding: 1rem;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+header h1 {
+    margin: 0.5rem 0 0.25rem;
+    background: linear-gradient(90deg, #a78bfa, #38bdf8);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+header p {
+    color: #94a3b8;
+    margin-top: 0;
+}
+
+.enlace-nav {
+    color: #38bdf8;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+.enlace-nav:hover { text-decoration: underline; }
+
+/* Recorrido de los datos */
+.flujo-pasos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0.75rem 0;
+}
+
+.paso {
+    padding: 0.35rem 0.9rem;
+    border: 1px solid #1f2937;
+    border-radius: 999px;
+    background: #111827;
+    font-size: 0.85rem;
+}
+
+.paso.kafka {
+    border-color: #a78bfa;
+    color: #c4b5fd;
+    font-weight: 600;
+}
+
+.flecha { color: #475569; }
+
+/* Indicador de conexión */
+#estado-conexion {
+    display: inline-block;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+.estado-espera { background: #422006; color: #fbbf24; }
+.estado-vivo   { background: #052e16; color: #4ade80; }
+.estado-error  { background: #450a0a; color: #f87171; }
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.panel {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.panel h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+}
+
+/* Tarjetas de tópicos */
+#topicos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+.tarjeta-topico {
+    background: #111827;
+    border: 1px solid #1f2937;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.tarjeta-titulo {
+    display: flex;
+    align-items: center;
+}
+
+.pulso {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #334155;
+    display: inline-block;
+    margin-right: 0.5rem;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.pulso.activo {
+    background: #4ade80;
+    box-shadow: 0 0 8px #4ade80;
+}
+
+.tarjeta-sub {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    margin: 0.15rem 0 0.5rem;
+}
+
+.tasa-valor {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #38bdf8;
+}
+
+.tarjeta-total {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    margin-bottom: 0.25rem;
+}
+
+.chip-particion {
+    display: inline-block;
+    margin: 0.4rem 0.4rem 0 0;
+    padding: 0.15rem 0.5rem;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+/* Salida hacia MongoDB */
+.cifras {
+    display: flex;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+}
+
+.cifras span {
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #facc15;
+}
+
+.cifras small { color: #94a3b8; }
+
+/* Tabla de mensajes */
+.controles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.acciones {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+}
+
+button {
+    background: #1e293b;
+    color: #e5e7eb;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 0.35rem 0.8rem;
+    cursor: pointer;
+}
+button:hover { background: #334155; }
+
+.contenedor-tabla {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+th {
+    position: sticky;
+    top: 0;
+    background: #1e293b;
+    text-align: left;
+    padding: 0.4rem 0.6rem;
+}
+
+td {
+    padding: 0.3rem 0.6rem;
+    border-bottom: 1px solid #1f2937;
+    vertical-align: top;
+}
+
+.topico-0 td:first-child { border-left: 3px solid #38bdf8; }
+.topico-1 td:first-child { border-left: 3px solid #facc15; }
+
+.fila-nueva { animation: destello 0.8s ease-out; }
+
+@keyframes destello {
+    from { background: rgba(56, 189, 248, 0.25); }
+    to   { background: transparent; }
+}
+
+.crudo { display: none; word-break: break-all; }
+.modo-crudo .resumen { display: none; }
+.modo-crudo .crudo { display: inline; }

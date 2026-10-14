@@ -34,8 +34,6 @@ class VehiculoAereo:
         self.lat += (distancia / 111.32) * math.cos(rad)
         self.lon += (distancia / 111.32) * math.sin(rad)
 
-        # Zona operativa: solo los drones están confinados a la cobertura de las estaciones
-        # (los satélites LEO no aplican, se salen del área en segundos por diseño real)
         if self.tipo == "dron":
             if self.lat < LAT_MIN or self.lat > LAT_MAX:
                 self.lat = max(LAT_MIN, min(LAT_MAX, self.lat))  # lo regresa dentro del límite
@@ -54,7 +52,6 @@ class VehiculoAereo:
         self.rumbo = (self.rumbo + random.uniform(-3, 3)) % 360
         self.velocidad = max(0, self.velocidad + random.uniform(-1, 1))
 
-        # Consumo de batería (los satélites tienen paneles solares -> se descargan mucho más lento)
         if self.tipo == "satelite":
             self.bateria = max(0, self.bateria - random.uniform(0.005, 0.02))
         else:
@@ -128,7 +125,7 @@ def main():
                 linea = vehiculo.a_json() + "\n"
                 conexion.sendall(linea.encode("utf-8"))
                 print(f"[Productor] Enviado -> {linea.strip()}")
-            time.sleep(1)  # frecuencia de reporte: 1 segundo
+            time.sleep(1)
     except (BrokenPipeError, ConnectionResetError):
         print("[Productor] Spark cerró la conexión.")
     finally:

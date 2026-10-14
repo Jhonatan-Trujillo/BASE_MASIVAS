@@ -26,11 +26,25 @@ header p {
     margin-top: 0;
 }
 
+/* Indicador de conexión con el servidor */
+#estado-conexion {
+    display: inline-block;
+    margin-top: 0.25rem;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+}
+.estado-espera { background: #422006; color: #fbbf24; }
+.estado-vivo   { background: #052e16; color: #4ade80; }
+.estado-error  { background: #450a0a; color: #f87171; }
+
+/* Mapa | Satélites | Alertas, en una sola fila */
 main {
-    display: flex;
+    display: grid;
+    grid-template-columns: 716px 280px 280px;
     gap: 1rem;
     justify-content: center;
-    flex-wrap: wrap;
+    align-items: start;
 }
 
 #mapa-contenedor {
@@ -55,14 +69,9 @@ main {
     background: transparent; /* el fondo ya lo dibuja #mapa-fondo debajo */
 }
 
-.columna-derecha {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    width: 320px;
-}
-
 #panel-satelites, #panel-alertas {
+    height: 516px;            /* misma altura que el mapa */
+    overflow-y: auto;
     background: #111827;
     border: 1px solid #1f2937;
     border-radius: 8px;
@@ -91,11 +100,6 @@ main {
 
 .satelite-card strong { color: #facc15; }
 
-#panel-alertas {
-    max-height: 320px;
-    overflow-y: auto;
-}
-
 #lista-alertas {
     list-style: none;
     padding: 0;
@@ -109,6 +113,12 @@ main {
     padding: 0.5rem;
     border-radius: 4px;
     font-size: 0.85rem;
+    animation: aparecer 0.3s ease-out;   /* solo se anima el <li> recién creado */
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 .alerta-bateria   { background: #7c2d12; }
@@ -141,3 +151,18 @@ main {
 .icono-leyenda.dron { background: #38bdf8; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
 .icono-leyenda.estacion { background: #a78bfa; border-radius: 50%; }
 .icono-leyenda.halo { border: 2px solid #ef4444; background: transparent; border-radius: 50%; }
+
+/* Pantallas angostas: el mapa arriba y, debajo, Satélites | Alertas lado a lado */
+@media (max-width: 1360px) {
+    main { grid-template-columns: 358px 358px; }
+    #mapa-contenedor { grid-column: 1 / -1; justify-self: center; }
+}
+
+.enlace-nav {
+    display: inline-block;
+    margin-left: 0.5rem;
+    color: #38bdf8;
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+.enlace-nav:hover { text-decoration: underline; }

@@ -5,14 +5,18 @@ const ctxFondo = canvasFondo.getContext("2d");
 
 const listaAlertas = document.getElementById("lista-alertas");
 const listaSatelites = document.getElementById("lista-satelites");
+const indicadorEstado = document.getElementById("estado-conexion");
 
 const LAT_MIN = 4.40, LAT_MAX = 4.46;
 const LON_MIN = -75.26, LON_MAX = -75.20;
 
-const idsVistos = new Set();
-const historialPosiciones = {}; // id -> [{x,y}, ...] para la estela
+const DURACION_INTERPOLACION_MS = 2000;  // tiempo de desplazamiento suave entre dos posiciones
 
-// Estaciones ADS-B fijas (decorativas, representan al "Productor" del enunciado)
+const idsVistos = new Set();
+const historialPosiciones = {};  // id -> [{x,y}, ...] para la estela
+const estadoVehiculos = {};      // id -> estado de interpolación de cada dron
+const tarjetasSatelites = {};    // id -> elemento HTML (se crea una sola vez)
+
 const estaciones = [
     { nombre: "Estación Norte", x: 60, y: 50 },
     { nombre: "Estación Sur", x: 640, y: 450 },
@@ -25,7 +29,17 @@ function proyectar(lat, lon) {
     return { x, y };
 }
 
-// --- Capa de FONDO: se dibuja una sola vez, no se repite en cada actualización ---
+function lerp(a, b, t) {
+    return a + (b - a) * t;
+}
+
+// Interpola el ángulo por el camino más corto (evita giros "al revés" al cruzar 0°/360°)
+function lerpAngulo(a, b, t) {
+    const diferencia = ((b - a + 540) % 360) - 180;
+    return (a + diferencia * t + 360) % 360;
+}
+
+// --- Capa de FONDO: se dibuja una sola vez ---
 
 function dibujarFondoRadar() {
     const cx = canvasFondo.width / 2;
@@ -59,17 +73,17 @@ function dibujarEstaciones() {
     });
 }
 
-// --- Capa DINÁMICA: se redibuja en cada ciclo (drones + estelas) ---
+// --- Capa DINÁMICA (drones + estelas) ---
 
 function dibujarEstela(id, x, y) {
     if (!historialPosiciones[id]) historialPosiciones[id] = [];
     const puntos = historialPosiciones[id];
     puntos.push({ x, y });
-    if (puntos.length > 15) puntos.shift();
+    if (puntos.length > 40) puntos.shift();
 
     ctx.beginPath();
     puntos.forEach((p, i) => {
-        ctx.globalAlpha = (i / puntos.length) * 0.5;
+        ctx.globalAlpha = (i / puntos.length) * 0.4;
         if (i === 0) ctx.moveTo(p.x, p.y);
         else ctx.lineTo(p.x, p.y);
     });
@@ -79,16 +93,14 @@ function dibujarEstela(id, x, y) {
     ctx.globalAlpha = 1;
 }
 
-function dibujarDron(v) {
-    const { x, y } = proyectar(v.lat, v.lon);
+function dibujarDron(v, x, y, rumbo) {
     dibujarEstela(v.id, x, y);
 
     const tieneAlerta = v.alerta_bateria || v.alerta_altitud || v.alerta_velocidad;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate((v.rumbo || 0) * Math.PI / 180);
-
+    ctx.rotate(rumbo * Math.PI / 180);
     ctx.beginPath();
     ctx.moveTo(0, -8);
     ctx.lineTo(6, 6);
@@ -111,20 +123,34 @@ function dibujarDron(v) {
     }
 }
 
+// --- Panel de satélites: las tarjetas se crean UNA vez y luego solo se actualizan sus textos ---
+
+function crearTarjetaSatelite(id) {
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "satelite-card";
+    tarjeta.innerHTML = `
+        <strong>${id}</strong><br>
+        Altitud: <span data-campo="altitud"></span> km &nbsp;|&nbsp;
+        Vel: <span data-campo="velocidad"></span> km/h<br>
+        Batería: <span data-campo="bateria"></span>%
+    `;
+    listaSatelites.appendChild(tarjeta);
+    return tarjeta;
+}
+
 function actualizarPanelSatelites(satelites) {
-    listaSatelites.innerHTML = "";
     satelites.forEach(s => {
-        const div = document.createElement("div");
-        div.className = "satelite-card";
-        div.innerHTML = `
-            <strong>${s.id}</strong><br>
-            Altitud: ${(s.altitud / 1000).toFixed(1)} km &nbsp;|&nbsp;
-            Vel: ${Math.round(s.velocidad)} km/h<br>
-            Batería: ${Math.round(s.bateria)}%
-        `;
-        listaSatelites.appendChild(div);
+        if (!tarjetasSatelites[s.id]) {
+            tarjetasSatelites[s.id] = crearTarjetaSatelite(s.id);
+        }
+        const tarjeta = tarjetasSatelites[s.id];
+        tarjeta.querySelector('[data-campo="altitud"]').textContent = (s.altitud / 1000).toFixed(1);
+        tarjeta.querySelector('[data-campo="velocidad"]').textContent = Math.round(s.velocidad);
+        tarjeta.querySelector('[data-campo="bateria"]').textContent = Math.round(s.bateria);
     });
 }
+
+// --- Panel de alertas: solo se AGREGAN elementos nuevos arriba, nunca se reconstruye la lista ---
 
 function agregarAlerta(texto, clase) {
     const li = document.createElement("li");
@@ -145,34 +171,85 @@ function procesarEventos(eventos) {
     });
 }
 
-async function actualizar() {
-    try {
-        const [respEstado, respColisiones] = await Promise.all([
-            fetch("estado_drones.json?_=" + Date.now()),
-            fetch("colisiones.json?_=" + Date.now())
-        ]);
+// --- Recepción de datos: el servidor EMPUJA cada cambio (Server-Sent Events) ---
 
-        const datosEstado = respEstado.ok ? await respEstado.json() : { vehiculos: [], eventos: [] };
-        const datosColisiones = respColisiones.ok ? await respColisiones.json() : { eventos: [] };
+function recibirDatos(datos) {
+    const vehiculos = datos.vehiculos || [];
+    const ahora = performance.now();
 
-        const vehiculos = datosEstado.vehiculos || [];
-        const drones = vehiculos.filter(v => v.tipo === "dron");
-        const satelites = vehiculos.filter(v => v.tipo === "satelite");
+    vehiculos.filter(v => v.tipo === "dron").forEach(v => {
+        const { x, y } = proyectar(v.lat, v.lon);
+        const previo = estadoVehiculos[v.id];
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // solo limpia la capa de drones
-        drones.forEach(dibujarDron);
+        estadoVehiculos[v.id] = {
+            datos: v,
+            prevX: previo ? previo.xActual(ahora) : x,
+            prevY: previo ? previo.yActual(ahora) : y,
+            prevRumbo: previo ? previo.rumboActual(ahora) : (v.rumbo || 0),
+            targetX: x,
+            targetY: y,
+            targetRumbo: v.rumbo || 0,
+            inicio: ahora,
+            xActual(t) { return lerp(this.prevX, this.targetX, this._t(t)); },
+            yActual(t) { return lerp(this.prevY, this.targetY, this._t(t)); },
+            rumboActual(t) { return lerpAngulo(this.prevRumbo, this.targetRumbo, this._t(t)); },
+            _t(t) { return Math.min(1, (t - this.inicio) / DURACION_INTERPOLACION_MS); }
+        };
+    });
 
-        actualizarPanelSatelites(satelites);
-        procesarEventos(datosEstado.eventos);
-        procesarEventos(datosColisiones.eventos);
-    } catch (e) {
-        console.warn("Aún no hay datos disponibles", e);
-    }
+    actualizarPanelSatelites(vehiculos.filter(v => v.tipo === "satelite"));
+    procesarEventos(datos.eventos);
 }
 
-// El fondo (radar + estaciones) se dibuja UNA sola vez al cargar la página
+// --- Indicador de conexión (arriba, junto al título) ---
+
+function mostrarEstado(texto, clase) {
+    indicadorEstado.textContent = texto;
+    indicadorEstado.className = clase;
+}
+
+function conectarStream() {
+    mostrarEstado("● Conectando con el servidor...", "estado-espera");
+    const fuente = new EventSource("/api/stream");
+
+    fuente.onopen = () => {
+        mostrarEstado("● Conectado al servidor, esperando datos del consumer...", "estado-espera");
+    };
+
+    fuente.onmessage = (mensaje) => {
+        try {
+            const datos = JSON.parse(mensaje.data);
+            recibirDatos(datos);
+            mostrarEstado(`● En vivo (${(datos.vehiculos || []).length} vehículos)`, "estado-vivo");
+        } catch (e) {
+            console.warn("Mensaje del stream no válido", e);
+        }
+    };
+
+    fuente.onerror = () => {
+        mostrarEstado("● Sin conexión con el servidor (¿api.py está corriendo? ¿abriste localhost:5000?)", "estado-error");
+    };
+}
+
+// --- Renderizado: corre en cada fotograma, desacoplado de la llegada de datos ---
+
+function renderizar() {
+    const ahora = performance.now();
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    Object.values(estadoVehiculos).forEach(estado => {
+        dibujarDron(
+            estado.datos,
+            estado.xActual(ahora),
+            estado.yActual(ahora),
+            estado.rumboActual(ahora)
+        );
+    });
+
+    requestAnimationFrame(renderizar);
+}
+
 dibujarFondoRadar();
 dibujarEstaciones();
-
-setInterval(actualizar, 1500);
-actualizar();
+conectarStream();
+requestAnimationFrame(renderizar);
