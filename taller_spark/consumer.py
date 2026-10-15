@@ -197,7 +197,6 @@ def es_alerta_nueva(id_vehiculo, campo, valor_actual):
 pares_activos_previos = set()
 
 ALERTAS_INDIVIDUALES = (
-    # (columna de la alerta, clave de estado, clase CSS que usa el front)
     ("alerta_bateria", "bateria", "alerta-bateria"),
     ("alerta_altitud", "altitud", "alerta-altitud"),
     ("alerta_velocidad", "velocidad", "alerta-velocidad"),
