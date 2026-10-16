@@ -53,9 +53,6 @@ def estadisticas_topicos(consumidor, particiones, inicios):
         info["total"] += fines[tp] - inicios[tp]
     return topicos
 
-
-# --- Archivos del front-end (solo las carpetas necesarias, no el código Python) ---
-
 @app.route("/")
 def inicio():
     return send_from_directory(BASE_DIR, "index.html")
